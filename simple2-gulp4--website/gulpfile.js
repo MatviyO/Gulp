@@ -73,9 +73,23 @@ function css() {
         .pipe(dest(path.build.css))
         .pipe(browsersync.stream())
 }
+
+
+function js() {
+    return src(path.src.js)
+        .pipe(fileinclude())
+        .pipe(dest(path.build.js))
+        .pipe(rename({
+            extname: ".min.js"
+        }))
+        .pipe(dest(path.build.js))
+        .pipe(browsersync.stream())
+}
+
 function watchFiles(params) {
-    gulp.watch([path.watch.html], html),
-        gulp.watch([path.watch.css], css)
+        gulp.watch([path.watch.html], html),
+        gulp.watch([path.watch.css], css),
+            gulp.watch([path.watch.js], js);
 }
 function clean() {
     return del(path.clean)
@@ -85,6 +99,8 @@ function clean() {
 let build = gulp.series(clean, gulp.parallel(css, html))
 let watch = gulp.parallel(build,watchFiles, browserSync);
 
+
+exports.js = js;
 exports.css = css;
 exports.html = html;
 exports.build = build;
