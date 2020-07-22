@@ -35,7 +35,9 @@ let {src, dest} = require('gulp'),
     autoprefixer = require('gulp-autoprefixer'),
     group_media = require('gulp-group-css-media-queries'),
     clean_css = require('gulp-clean-css'),
-    rename = require('gulp-rename')
+    rename = require('gulp-rename'),
+    uglify = require('gulp-uglify-es').default,
+    imagein = require('gulp-imagemin');
 
 
 
@@ -73,12 +75,24 @@ function css() {
         .pipe(dest(path.build.css))
         .pipe(browsersync.stream())
 }
+function images() {
+    return src(path.src.img)
+        .pipe(imagein({
+            progressive: true,
+            svgoPlugins: [{removeViewBox: false}],
+            interlaced: true,
+            optimizationLevel: 3
+        }))
+        .pipe(dest(path.build.img))
+        .pipe(browsersync.stream())
+}
 
 
 function js() {
     return src(path.src.js)
         .pipe(fileinclude())
         .pipe(dest(path.build.js))
+        .pipe(uglify())
         .pipe(rename({
             extname: ".min.js"
         }))
@@ -89,17 +103,17 @@ function js() {
 function watchFiles(params) {
         gulp.watch([path.watch.html], html),
         gulp.watch([path.watch.css], css),
-            gulp.watch([path.watch.js], js);
+            gulp.watch([path.watch.js], js)
 }
 function clean() {
     return del(path.clean)
 }
 
 
-let build = gulp.series(clean, gulp.parallel(css, html))
+let build = gulp.series(clean, gulp.parallel(js, css, html, images))
 let watch = gulp.parallel(build,watchFiles, browserSync);
 
-
+exports.images = images;
 exports.js = js;
 exports.css = css;
 exports.html = html;
